@@ -1,0 +1,9 @@
+{
+  "name": "DARULFAHAM",
+  "description": "Educational study space & competitive test ecosystem with database-enforced student privacy, Cashfree payment gateway integration, coupon management, digital books, and institutional results.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

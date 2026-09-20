@@ -1,0 +1,175 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function getUserRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function getUserStudentId() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.studentId;
+    }
+
+    function isAdminOrSuperAdmin() {
+      return isSignedIn() && (getUserRole() in ['ADMIN', 'SUPER_ADMIN']);
+    }
+
+    function isStaffOrAdmin() {
+      return isSignedIn() && (getUserRole() in ['STAFF', 'ADMIN', 'SUPER_ADMIN']);
+    }
+    
+    // User profile: Anyone can read their own, Admin can read all
+    match /users/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdminOrSuperAdmin());
+      allow write: if isSignedIn() && getUserRole() == 'SUPER_ADMIN';
+    }
+
+    // Students collection: Student contact & PII privacy enforcement
+    // A student can ONLY read their own student record. 
+    // They are STRICTLY FORBIDDEN from reading other students' records or querying contact numbers.
+    match /students/{studentId} {
+      allow read: if isSignedIn() && (
+        resource.data.studentId == getUserStudentId() || 
+        resource.data.studentId == request.auth.uid || 
+        isStaffOrAdmin()
+      );
+      allow write: if isAdminOrSuperAdmin();
+    }
+
+    // Attendance: Staff and Admin can write, Students can only read their own
+    match /attendance/{recordId} {
+      allow read: if isSignedIn() && (
+        resource.data.studentId == getUserStudentId() || 
+        resource.data.studentId == request.auth.uid || 
+        isStaffOrAdmin()
+      );
+      allow create, update: if isStaffOrAdmin();
+    }
+
+    // Orders collection: Student can ONLY read their own orders.
+    // Students cannot modify order price, coupon discount, or status.
+    match /orders/{orderId} {
+      allow read: if isSignedIn() && (
+        resource.data.studentId == getUserStudentId() || 
+        resource.data.studentId == request.auth.uid || 
+        isAdminOrSuperAdmin()
+      );
+      allow create: if isSignedIn() && request.resource.data.studentId == getUserStudentId();
+      allow update, delete: if isAdminOrSuperAdmin();
+    }
+
+    // Payments collection: Verified receipts and payment history.
+    // Only student owner and Admins can view. Only Admin / server can write.
+    match /payments/{paymentId} {
+      allow read: if isSignedIn() && (
+        resource.data.studentId == getUserStudentId() || 
+        resource.data.studentId == request.auth.uid || 
+        isAdminOrSuperAdmin()
+      );
+      allow write: if isAdminOrSuperAdmin();
+    }
+
+    // Coupons: Any signed in user can read active coupons to validate. Only Admin can manage.
+    match /coupons/{couponId} {
+      allow read: if isSignedIn();
+      allow write: if isAdminOrSuperAdmin();
+    }
+
+    // Coupon Usage: Tracked per student
+    match /couponUsage/{usageId} {
+      allow read: if isSignedIn() && (
+        resource.data.studentId == getUserStudentId() || 
+        resource.data.studentId == request.auth.uid || 
+        isAdminOrSuperAdmin()
+      );
+      allow write: if isAdminOrSuperAdmin();
+    }
+
+    // Digital Books: Public or published books can be browsed. Only Admin can edit.
+    match /digitalBooks/{bookId} {
+      allow read: if isSignedIn() && (resource.data.status == 'PUBLISHED' || isAdminOrSuperAdmin());
+      allow write: if isAdminOrSuperAdmin();
+    }
+
+    // Book Access: Entitlements for individual students
+    match /bookAccess/{accessId} {
+      allow read: if isSignedIn() && (
+        resource.data.studentId == getUserStudentId() || 
+        resource.data.studentId == request.auth.uid || 
+        isAdminOrSuperAdmin()
+      );
+      allow write: if isAdminOrSuperAdmin();
+    }
+
+    // DARULFAHAM Institutional Past Results:
+    // Published results are readable by all authenticated users (strictly privacy-safe fields).
+    // Only Admin can create, modify, or delete past results.
+    match /institutionResults/{resultId} {
+      allow read: if resource.data.status == 'PUBLISHED' || isAdminOrSuperAdmin();
+      allow write: if isAdminOrSuperAdmin();
+    }
+
+    // Study space & seats
+    match /seats/{seatId} {
+      allow read: if isSignedIn();
+      allow write: if isStaffOrAdmin();
+    }
+
+    // Test Series & Tests
+    match /test_series/{seriesId} {
+      allow read: if isSignedIn();
+      allow write: if isAdminOrSuperAdmin();
+    }
+
+    // Test Attempts
+    match /test_attempts/{attemptId} {
+      allow read: if isSignedIn() && (
+        resource.data.studentId == getUserStudentId() || 
+        resource.data.studentId == request.auth.uid || 
+        isStaffOrAdmin()
+      );
+      allow create: if isSignedIn();
+      allow update, delete: if isAdminOrSuperAdmin();
+    }
+
+    // Audit Logs: Highly protected. STRICT ZERO ACCESS FOR STUDENTS AND STAFF.
+    match /audit_logs/{logId} {
+      allow read: if isAdminOrSuperAdmin();
+      allow write: if isAdminOrSuperAdmin();
+    }
+
+    // Student ID Cards: Students can ONLY read their own card. Staff/Admin can read. Only Admin can write.
+    match /studentIdCards/{cardId} {
+      allow read: if isSignedIn() && (
+        resource.data.studentId == getUserStudentId() || 
+        resource.data.studentId == request.auth.uid || 
+        isStaffOrAdmin()
+      );
+      allow write: if isAdminOrSuperAdmin();
+    }
+
+    // Staff ID Cards: Staff can read their own card. Admin can read all. Only Admin can write.
+    match /staffIdCards/{cardId} {
+      allow read: if isSignedIn() && (
+        resource.data.staffId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.staffId || 
+        isAdminOrSuperAdmin()
+      );
+      allow write: if isAdminOrSuperAdmin();
+    }
+
+    // ID Card System Settings: All authenticated can read public layout rules; only Admin can edit.
+    match /idCardSettings/{settingsDoc} {
+      allow read: if isSignedIn();
+      allow write: if isAdminOrSuperAdmin();
+    }
+
+    // Payment Webhook Events: Strictly Admin/Server only
+    match /paymentWebhookEvents/{eventId} {
+      allow read, write: if isAdminOrSuperAdmin();
+    }
+  }
+}

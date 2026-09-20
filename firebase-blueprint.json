@@ -1,0 +1,197 @@
+{
+  "entities": {
+    "users": {
+      "description": "User profiles with role-based access control and student ID references",
+      "fields": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string" },
+        "displayName": { "type": "string" },
+        "studentId": { "type": "string", "optional": true },
+        "permissions": { "type": "array", "optional": true },
+        "createdAt": { "type": "string" }
+      }
+    },
+    "students": {
+      "description": "Student master records containing personal details and Aadhaar document references",
+      "fields": {
+        "studentId": { "type": "string" },
+        "name": { "type": "string" },
+        "fatherName": { "type": "string" },
+        "motherName": { "type": "string" },
+        "dob": { "type": "string" },
+        "address": { "type": "string" },
+        "phone": { "type": "string" },
+        "parentPhone": { "type": "string", "optional": true },
+        "email": { "type": "string" },
+        "aadhaarNumber": { "type": "string" },
+        "aadhaarUrl": { "type": "string" },
+        "profilePhotoUrl": { "type": "string" },
+        "status": { "type": "string" }
+      }
+    },
+    "orders": {
+      "description": "Financial orders for memberships, test series, courses, and digital books",
+      "fields": {
+        "id": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "productType": { "type": "string" },
+        "productId": { "type": "string" },
+        "productTitle": { "type": "string" },
+        "originalAmount": { "type": "number" },
+        "couponCode": { "type": "string", "optional": true },
+        "discountAmount": { "type": "number" },
+        "finalAmount": { "type": "number" },
+        "currency": { "type": "string" },
+        "status": { "type": "string" },
+        "cashfreeOrderId": { "type": "string", "optional": true },
+        "createdAt": { "type": "string" }
+      }
+    },
+    "payments": {
+      "description": "Verified payment transactions, receipts, and Cashfree settlement records",
+      "fields": {
+        "id": { "type": "string" },
+        "orderId": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "productTitle": { "type": "string" },
+        "finalAmount": { "type": "number" },
+        "receiptNumber": { "type": "string" },
+        "cashfreeReference": { "type": "string", "optional": true },
+        "status": { "type": "string" },
+        "paidAt": { "type": "string" }
+      }
+    },
+    "coupons": {
+      "description": "Promotional discount codes, validity, and eligibility rules",
+      "fields": {
+        "id": { "type": "string" },
+        "code": { "type": "string" },
+        "title": { "type": "string" },
+        "discountType": { "type": "string" },
+        "discountValue": { "type": "number" },
+        "minPurchase": { "type": "number" },
+        "validUntil": { "type": "string" },
+        "usageLimit": { "type": "number" },
+        "isActive": { "type": "boolean" }
+      }
+    },
+    "couponUsage": {
+      "description": "Per-student tracking of applied coupon codes to prevent abuse",
+      "fields": {
+        "id": { "type": "string" },
+        "couponCode": { "type": "string" },
+        "studentId": { "type": "string" },
+        "orderId": { "type": "string" },
+        "discountAmount": { "type": "number" },
+        "usedAt": { "type": "string" }
+      }
+    },
+    "digitalBooks": {
+      "description": "Digital eBooks, study material, syllabi, and question archives",
+      "fields": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "author": { "type": "string" },
+        "description": { "type": "string" },
+        "subject": { "type": "string" },
+        "classLevel": { "type": "string" },
+        "coverImage": { "type": "string" },
+        "pdfUrl": { "type": "string" },
+        "isFree": { "type": "boolean" },
+        "price": { "type": "number" },
+        "accessType": { "type": "string" },
+        "allowDownload": { "type": "boolean" },
+        "status": { "type": "string" }
+      }
+    },
+    "bookAccess": {
+      "description": "Student entitlement grants to digital books",
+      "fields": {
+        "id": { "type": "string" },
+        "studentId": { "type": "string" },
+        "bookId": { "type": "string" },
+        "accessType": { "type": "string" },
+        "grantedAt": { "type": "string" }
+      }
+    },
+    "institutionResults": {
+      "description": "Public and internal DARULFAHAM institutional results and achievements",
+      "fields": {
+        "id": { "type": "string" },
+        "academicYear": { "type": "string" },
+        "exam": { "type": "string" },
+        "classLevel": { "type": "string" },
+        "studentName": { "type": "string" },
+        "displayNameType": { "type": "string" },
+        "marks": { "type": "number", "optional": true },
+        "percentage": { "type": "number", "optional": true },
+        "rank": { "type": "number", "optional": true },
+        "achievement": { "type": "string" },
+        "showPhoto": { "type": "boolean" },
+        "isFeatured": { "type": "boolean" },
+        "status": { "type": "string" }
+      }
+    },
+    "branches": {
+      "description": "DARULFAHAM study space branch locations",
+      "fields": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "location": { "type": "string" },
+        "totalRooms": { "type": "number" }
+      }
+    },
+    "seats": {
+      "description": "Study space seat mapping and live occupancy status",
+      "fields": {
+        "id": { "type": "string" },
+        "branchId": { "type": "string" },
+        "roomId": { "type": "string" },
+        "seatNumber": { "type": "number" },
+        "status": { "type": "string" },
+        "assignedTo": { "type": "string", "optional": true },
+        "studentName": { "type": "string", "optional": true }
+      }
+    },
+    "test_series": {
+      "description": "Exam series and test catalogs with question banks",
+      "fields": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "price": { "type": "number" },
+        "durationMinutes": { "type": "number" },
+        "totalMarks": { "type": "number" },
+        "tests": { "type": "array" }
+      }
+    },
+    "test_attempts": {
+      "description": "Student exam submissions and scores",
+      "fields": {
+        "id": { "type": "string" },
+        "studentId": { "type": "string" },
+        "testId": { "type": "string" },
+        "marks": { "type": "number" },
+        "answers": { "type": "object" },
+        "timestamp": { "type": "string" },
+        "rank": { "type": "number", "optional": true }
+      }
+    },
+    "audit_logs": {
+      "description": "Audit trails for compliance and sensitive document access",
+      "fields": {
+        "id": { "type": "string" },
+        "adminId": { "type": "string" },
+        "action": { "type": "string" },
+        "targetStudent": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "severity": { "type": "string" },
+        "ip": { "type": "string", "optional": true }
+      }
+    }
+  }
+}
